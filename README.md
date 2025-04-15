@@ -11,12 +11,14 @@ Welcome to the Hello World API! This project is a simple API designed to help yo
 
 ## Project Structure
 
+```
 lab-api/
 ├── Dockerfile       # Docker configuration for containerizing the API
 ├── README.md        # Project documentation
 ├── .gitignore       # Files and directories to ignore in Git
 ├── src/             # Source code for the API
 └── tests/           # Unit tests for the API
+```
 
 ## Getting Started
 
