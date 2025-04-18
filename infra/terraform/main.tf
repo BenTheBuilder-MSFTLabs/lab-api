@@ -12,13 +12,13 @@ module "regions" {
 }
 
 module "vm_sku" {
-  source  = "Azure/avm-utl-sku-finder/azapi"
-  version = "0.3.0"
+  source        = "Azure/avm-utl-sku-finder/azapi"
+  version       = "0.3.0"
   location      = data.azurerm_resource_group.rg.location
   cache_results = false
   vm_filters = {
     max_vcpus = 2
-    
+
   }
 }
 
@@ -66,7 +66,7 @@ resource "azurerm_network_security_group" "app_subnet_nsg" {
 
 # Associate the NSG with the AppSubnet
 resource "azurerm_subnet_network_security_group_association" "app_subnet_nsg_association" {
-  subnet_id                 = module.virtual_network.subnets["subnet2"].resource_id  
+  subnet_id                 = module.virtual_network.subnets["subnet2"].resource_id
   network_security_group_id = azurerm_network_security_group.app_subnet_nsg.id
 }
 
@@ -74,21 +74,21 @@ resource "azurerm_subnet_network_security_group_association" "app_subnet_nsg_ass
 module "azure_bastion" {
   source = "Azure/avm-res-network-bastionhost/azurerm"
 
-  enable_telemetry    = false
-  name                = "bastion_${var.initials}${var.random_string}"
-  resource_group_name = data.azurerm_resource_group.rg.name
-  location            = data.azurerm_resource_group.rg.location
-  copy_paste_enabled  = true
-  file_copy_enabled   = true
-  sku                 = "Standard"
+  enable_telemetry       = false
+  name                   = "bastion_${var.initials}${var.random_string}"
+  resource_group_name    = data.azurerm_resource_group.rg.name
+  location               = data.azurerm_resource_group.rg.location
+  copy_paste_enabled     = true
+  file_copy_enabled      = true
+  sku                    = "Standard"
   ip_connect_enabled     = true
   shareable_link_enabled = true
   tunneling_enabled      = true
   kerberos_enabled       = true
   ip_configuration = {
-    name                 = "my-ipconfig"
-    subnet_id            = module.virtual_network.subnets["subnet1"].resource_id
-    create_public_ip     = true
+    name                   = "my-ipconfig"
+    subnet_id              = module.virtual_network.subnets["subnet1"].resource_id
+    create_public_ip       = true
     public_ip_address_name = "bastionpip-${var.initials}${var.random_string}"
   }
   tags = local.resourceTags
@@ -112,7 +112,7 @@ resource "azurerm_lb" "webapp_lb" {
   resource_group_name = data.azurerm_resource_group.rg.name
   sku                 = "Standard"
 
-frontend_ip_configuration {
+  frontend_ip_configuration {
     name                 = "frontend-${var.initials}${var.random_string}"
     public_ip_address_id = azurerm_public_ip.webapp_lb_pip.id
   }
@@ -159,45 +159,45 @@ resource "azurerm_lb_outbound_rule" "example" {
 
 # Create WebApp Servers
 module "webappServers" {
-    source = "Azure/avm-res-compute-virtualmachine/azurerm"
-    version = "~>0.17.0"
-    enable_telemetry = true
-    count = var.appServersConfig.vmcount
-    resource_group_name = data.azurerm_resource_group.rg.name
-    name = "${var.appServersConfig.vmnameprefix}${count.index}" # Unique name per instance
-    location = data.azurerm_resource_group.rg.location
-    encryption_at_host_enabled = false
-    generate_admin_password_or_ssh_key = false
-    os_type = "Linux"
-    sku_size = var.appServersConfig.vm_sku
-    zone = var.appServersConfig.zones[0]
-    tags = local.resourceTags
-    admin_username = var.appServersConfig.adminUsername
-    admin_ssh_keys = [
-        {
-        public_key = file(var.appServersConfig.key_path)
-        username   = var.appServersConfig.adminUsername
-        }
-    ]
-    source_image_reference = {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-focal"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
+  source                             = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version                            = "~>0.17.0"
+  enable_telemetry                   = true
+  count                              = var.appServersConfig.vmcount
+  resource_group_name                = data.azurerm_resource_group.rg.name
+  name                               = "${var.appServersConfig.vmnameprefix}${count.index}" # Unique name per instance
+  location                           = data.azurerm_resource_group.rg.location
+  encryption_at_host_enabled         = false
+  generate_admin_password_or_ssh_key = false
+  os_type                            = "Linux"
+  sku_size                           = var.appServersConfig.vm_sku
+  zone                               = var.appServersConfig.zones[0]
+  tags                               = local.resourceTags
+  admin_username                     = var.appServersConfig.adminUsername
+  admin_ssh_keys = [
+    {
+      public_key = file(var.appServersConfig.key_path)
+      username   = var.appServersConfig.adminUsername
     }
-    network_interfaces = {
-        nic0 = {
-            name = "${var.appServersConfig.vmnameprefix}${count.index}-nic0"
-            ip_configurations = {
-                ipconfig0 = {
-                    name = "ipconfig1"
-                    private_ip_address_allocation = "Dynamic"
-                    private_ip_subnet_resource_id = module.virtual_network.subnets["subnet2"].resource_id
-                    create_public_ip_address = false
-                }
-            }
+  ]
+  source_image_reference = {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+  network_interfaces = {
+    nic0 = {
+      name = "${var.appServersConfig.vmnameprefix}${count.index}-nic0"
+      ip_configurations = {
+        ipconfig0 = {
+          name                          = "ipconfig1"
+          private_ip_address_allocation = "Dynamic"
+          private_ip_subnet_resource_id = module.virtual_network.subnets["subnet2"].resource_id
+          create_public_ip_address      = false
         }
+      }
     }
+  }
 }
 
 # Associate Network Interface to the Backend Pool of the Load Balancer

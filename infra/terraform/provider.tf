@@ -18,7 +18,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "rg_bmmudtyw4"
-    storage_account_name = "storagebmmudtyw4"
+    storage_account_name = "strartifactsbmmudtyw4"
     container_name       = "tfstate"
     key                  = "gitops.tfstate"
     tenant_id            = "477bacc4-4ada-4431-940b-b91cf6cb3fd4"
