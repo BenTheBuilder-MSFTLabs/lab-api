@@ -1,0 +1,84 @@
+---
+
+- hosts: webservers
+  gather_facts: yes
+  vars:
+    ansible_ssh_private_key_file: ~/.ssh/docker
+    github_user: "{{ lookup('env','GITHUB_USER') }}"
+    dockerimage: "{{ lookup('env','DOCKER_IMAGE') }}"
+  tasks:
+    - name: Display hostname
+      debug:
+        msg: "Hostname: {{ ansible_hostname }}"
+      register: hostname
+    
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+      become: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+      become: yes
+
+    - name: add user to docker group
+      become: yes
+      user: name=user
+            append=yes
+            groups="docker"
+
+    - name: Install Python3 and pip
+      apt:
+        name:
+          - python3
+          - python3-pip
+        state: present
+      become: yes
+      register: python_install
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Install Python Docker SDK
+      pip:
+        name: docker
+        state: present
+      become: yes
+
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+      become: yes 
+  
+    #- name: Login GHCR.io
+    #  shell: echo $GITHUB_TOKEN | docker login ghcr.io -u {{ github_user }} --password-stdin
+    #  register: login_result
+    #  become: yes
+    
+    - name: Login to Docker registry
+      docker_login:
+        registry_url: ghcr.io
+        username: "{{ github_user }}"
+        password: "{{ lookup('env','GITHUB_TOKEN') }}"
+      register: login_result
+      become: yes
+ 
+    - name: Pull Docker image
+      docker_image:
+        name: ghcr.io/{{ github_user }}/{{ dockerimage }}
+        tag: latest
+        source: pull
+      register: docker_image
+      when: login_result is not failed
+      become: yes
+  
+    - name: Run Docker container exposing app on port 80
+      docker_container:
+        name: demo-app
+        image: ghcr.io/{{ github_user }}/{{ dockerimage }}:latest
+        state: started
+        ports:
+          - "80:80"
+      become: yes

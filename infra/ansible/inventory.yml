@@ -1,0 +1,13 @@
+---
+webservers:
+  hosts:
+    webserver1:
+      ansible_host: 127.0.0.1
+      ansible_port: 10022
+      ansible_user: labAdmin
+      ansible_key_file: ~/.ssh/docker
+    webserver2:
+      ansible_host: 127.0.0.1
+      ansible_port: 20022
+      ansible_user: labAdmin
+      ansible_key_file: ~/.ssh/docker
