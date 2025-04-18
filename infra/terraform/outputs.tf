@@ -6,6 +6,10 @@ output "AzureRegion" {
   value = data.azurerm_resource_group.rg.location
 }
 
+output "BastionName" {
+  value = module.azure_bastion.name
+}
+
 output "vm_private_ips" {
   description = "PrivateIP addresses of the VMs"
   value = [
